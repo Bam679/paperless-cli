@@ -1,0 +1,1 @@
+server	true	https://paperless.example.test reachable, Paperless-ngx 3.5.1, token from env

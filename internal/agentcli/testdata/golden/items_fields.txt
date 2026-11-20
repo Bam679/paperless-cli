@@ -1,0 +1,4 @@
+Milk	false
+Tab and newline	true
+Secret	false
+Sandbox item	false

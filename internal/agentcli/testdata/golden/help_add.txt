@@ -1,0 +1,10 @@
+Usage: fake add <input> [flags]
+
+add item [write: policy op "add", needs --confirm]
+  <input>  - for stdin
+
+Flags:
+  --list <string>          target list (required)
+  --title <string>         title
+
+Stdin: NDJSON objects {title}

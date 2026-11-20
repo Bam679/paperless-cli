@@ -1,0 +1,28 @@
+fake 0.0.0-test - fake tool
+
+Usage: fake <command> [args] [flags]
+
+Commands:
+  items            list items
+  get              get item
+  add              add item [write]
+  schema           print the machine-readable CLI contract as JSON
+  policy           show the effective policy and its file paths
+  guard            Claude Code PreToolUse hook: deny tool calls that modify policy files (reads hook JSON on stdin)
+  version          print the version
+  help             show help
+
+Global flags:
+  --json                   print one JSON document
+  --ndjson                 print one JSON object per line
+  --fields <string>        comma-separated output fields
+  --limit <int>            max items to return (default 50)
+  --cursor <string>        continue from a next_cursor
+  --max-chars <int>        cap stdout size; long text is truncated
+  --dry-run                writes: show what would change, change nothing
+  --confirm                writes: required to actually change data
+  --timeout <string>       abort after this duration
+  --help                   show help
+
+Writes need --confirm (or --dry-run) and must be allowed by the policy file.
+Run 'fake schema' for the full machine-readable contract.

@@ -1,0 +1,22 @@
+# Install once: lefthook install
+output:
+  - failure
+pre-commit:
+  parallel: true
+  commands:
+    gofmt:
+      glob: "*.go"
+      run: test -z "$(gofmt -l {staged_files})" || (gofmt -l {staged_files}; exit 1)
+    gitleaks:
+      run: gitleaks git --staged --no-banner --redact .
+    agents-md:
+      glob: "{AGENTS,CLAUDE}.md"
+      run: scripts/check-agents-md.sh
+commit-msg:
+  commands:
+    conventional:
+      run: scripts/commit-msg.sh {1}
+pre-push:
+  commands:
+    check:
+      run: make fmt-check vet lint test

@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose a command, flag or output change
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What should an agent be able to do?
+    validations:
+      required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Read or write?
+      options: [read, write]
+    validations:
+      required: true
+  - type: textarea
+    id: policy
+    attributes:
+      label: Policy impact (new op name, scope)

@@ -1,0 +1,2 @@
+1	Milk	Shopping
+# truncated: output exceeded --max-chars

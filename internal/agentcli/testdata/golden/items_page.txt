@@ -1,0 +1,2 @@
+1	Milk	Shopping
+# next_cursor=c1.eyJvIjoxLCJrIjoiNTdmNWJlOWM4MTE0In0

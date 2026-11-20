@@ -1,0 +1,15 @@
+id: 3
+title: Agent scratch
+created: 2026-11-10
+added: 2026-11-02T09:30:00Z
+modified: 2026-11-02T09:30:00Z
+correspondent: -
+correspondent_id: -
+document_type: -
+document_type_id: -
+tags: agent-sandbox
+archive_serial_number: 7
+original_file_name: -
+mime_type: -
+page_count: -
+content: hello world synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line. synthetic line.

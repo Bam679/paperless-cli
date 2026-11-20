@@ -1,0 +1,251 @@
+{
+  "commands": [
+    {
+      "args": [
+        {
+          "name": "input",
+          "usage": "- for stdin"
+        }
+      ],
+      "default_fields": [
+        "id",
+        "title",
+        "list"
+      ],
+      "flags": [
+        {
+          "name": "list",
+          "required": true,
+          "type": "string",
+          "usage": "target list"
+        },
+        {
+          "name": "title",
+          "type": "string",
+          "usage": "title"
+        }
+      ],
+      "kind": "write",
+      "name": "add",
+      "op": "add",
+      "stdin": "NDJSON objects {title}",
+      "summary": "add item"
+    },
+    {
+      "args": [
+        {
+          "name": "id",
+          "required": true,
+          "usage": ""
+        }
+      ],
+      "default_fields": [
+        "id",
+        "title"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "list",
+        "done",
+        "body"
+      ],
+      "flags": [],
+      "kind": "read",
+      "name": "get",
+      "op": "read",
+      "summary": "get item"
+    },
+    {
+      "args": [],
+      "flags": [],
+      "kind": "read",
+      "name": "guard",
+      "op": "read",
+      "summary": "Claude Code PreToolUse hook: deny tool calls that modify policy files (reads hook JSON on stdin)"
+    },
+    {
+      "args": [],
+      "flags": [],
+      "kind": "read",
+      "name": "help",
+      "op": "read",
+      "summary": "show help"
+    },
+    {
+      "args": [],
+      "default_fields": [
+        "id",
+        "title",
+        "list"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "list",
+        "done"
+      ],
+      "flags": [
+        {
+          "name": "list",
+          "type": "string",
+          "usage": "filter by list"
+        }
+      ],
+      "kind": "read",
+      "name": "items",
+      "op": "read",
+      "summary": "list items"
+    },
+    {
+      "args": [],
+      "flags": [
+        {
+          "name": "example",
+          "type": "bool",
+          "usage": "print an example policy file"
+        },
+        {
+          "name": "claude-settings",
+          "type": "bool",
+          "usage": "print recommended Claude Code permission rules"
+        }
+      ],
+      "kind": "read",
+      "name": "policy",
+      "op": "read",
+      "summary": "show the effective policy and its file paths"
+    },
+    {
+      "args": [],
+      "flags": [],
+      "kind": "read",
+      "name": "schema",
+      "op": "read",
+      "summary": "print the machine-readable CLI contract as JSON"
+    },
+    {
+      "args": [],
+      "flags": [],
+      "kind": "read",
+      "name": "version",
+      "op": "read",
+      "summary": "print the version"
+    }
+  ],
+  "exit_codes": [
+    {
+      "code": 0,
+      "meaning": "success",
+      "name": "ok"
+    },
+    {
+      "code": 1,
+      "meaning": "internal or unexpected error",
+      "name": "internal"
+    },
+    {
+      "code": 2,
+      "meaning": "invalid arguments or flags",
+      "name": "usage"
+    },
+    {
+      "code": 3,
+      "meaning": "item or container does not exist",
+      "name": "not_found"
+    },
+    {
+      "code": 4,
+      "meaning": "denied by the policy file; flags cannot override this",
+      "name": "policy_denied"
+    },
+    {
+      "code": 5,
+      "meaning": "write requested without --confirm; preview with --dry-run",
+      "name": "confirm_required"
+    },
+    {
+      "code": 6,
+      "meaning": "OS privacy permission (TCC) or authentication failure",
+      "name": "permission_denied"
+    },
+    {
+      "code": 7,
+      "meaning": "backend not reachable or timed out",
+      "name": "unavailable"
+    },
+    {
+      "code": 8,
+      "meaning": "ambiguous name or item already exists",
+      "name": "conflict"
+    }
+  ],
+  "global_flags": [
+    {
+      "name": "json",
+      "type": "bool",
+      "usage": "print one JSON document"
+    },
+    {
+      "name": "ndjson",
+      "type": "bool",
+      "usage": "print one JSON object per line"
+    },
+    {
+      "name": "fields",
+      "type": "string",
+      "usage": "comma-separated output fields"
+    },
+    {
+      "name": "limit",
+      "type": "int",
+      "usage": "max items to return (default 50)"
+    },
+    {
+      "name": "cursor",
+      "type": "string",
+      "usage": "continue from a next_cursor"
+    },
+    {
+      "name": "max-chars",
+      "type": "int",
+      "usage": "cap stdout size; long text is truncated"
+    },
+    {
+      "name": "dry-run",
+      "type": "bool",
+      "usage": "writes: show what would change, change nothing"
+    },
+    {
+      "name": "confirm",
+      "type": "bool",
+      "usage": "writes: required to actually change data"
+    },
+    {
+      "default": "60s",
+      "name": "timeout",
+      "type": "string",
+      "usage": "abort after this duration"
+    },
+    {
+      "name": "help",
+      "type": "bool",
+      "usage": "show help"
+    }
+  ],
+  "name": "fake",
+  "output": {
+    "errors": "one JSON line on stderr: {\"error\":{code,message,hint,exit}}",
+    "json": "lists: {items,count,next_cursor?,truncated?}; single items: object",
+    "ndjson": "one object per line; optional final {\"_meta\":{next_cursor,truncated}}",
+    "text": "one item per line, tab-separated default fields, '-' for empty; trailer lines start with '#'"
+  },
+  "policy": {
+    "default": "read-only: operations.allow=[read], scopes.read.allow=[*], no writes",
+    "rules": "layers intersect; deny wins; flags and env vars cannot widen the policy",
+    "scope": "list name",
+    "user_path": "~/.config/agent-cli/fake.json (home from the user database, not $HOME)"
+  },
+  "summary": "fake tool",
+  "version": "0.0.0-test"
+}

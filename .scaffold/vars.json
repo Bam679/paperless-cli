@@ -1,0 +1,19 @@
+{
+  "REPO": "paperless-cli",
+  "BIN": "paperless",
+  "TITLE": "Paperless-ngx",
+  "DESC": "Paperless-ngx CLI for AI agents: list, search, read and download documents, and (policy-gated) upload, tag and update them over the REST API.",
+  "PKG": "paperless",
+  "APPLE": false,
+  "GOOS": "darwin, linux, windows",
+  "PLATFORMS": "macOS, Linux and Windows; amd64 and arm64",
+  "EXAMPLE_OS": "darwin",
+  "KEYWORDS": "\"paperless\", \"paperless-ngx\", \"documents\", \"dms\", \"cli\", \"agent\"",
+  "SCOPE_HELP": "document tags as `tag:<name>` (e.g. `tag:invoices`, `tag:agent-*`), or `untagged` for documents without tags",
+  "WRITE_OPS": "`upload`, `update`, `delete`, `tag-create`",
+  "SYSTEM_POLICY": "/Library/Application Support/agent-cli/paperless.json` (macOS) or `/etc/agent-cli/paperless.json",
+  "INJECTION": "No shell and no scripts. Requests are built with `net/url` and `encoding/json` from typed parameters, and the only subprocess (`/usr/bin/security`, for the Keychain) gets fixed argv elements.",
+  "SECRETS": "The API token comes from `PAPERLESS_TOKEN` or the macOS Keychain (keyed by the server URL), never from flags or arguments. It is never printed, logged or included in errors, and it is never sent to another host on a redirect.",
+  "NETWORK": " except HTTPS requests to your own `PAPERLESS_URL`",
+  "POLICY": "{\n  \"version\": 1,\n  \"operations\": { \"allow\": [\"read\", \"upload\", \"update\", \"tag-create\"], \"deny\": [\"delete\"] },\n  \"scopes\": {\n    \"read\":  { \"allow\": [\"*\"], \"deny\": [\"tag:medical\", \"tag:private*\"] },\n    \"write\": { \"allow\": [\"tag:agent-*\", \"tag:inbox\"], \"deny\": [] }\n  },\n  \"limits\": { \"max_results\": 200, \"max_write_batch\": 10 }\n}"
+}

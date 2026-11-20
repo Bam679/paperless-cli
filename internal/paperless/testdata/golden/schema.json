@@ -1,0 +1,628 @@
+{
+  "commands": [
+    {
+      "name": "correspondents",
+      "summary": "list correspondents",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": [],
+      "default_fields": [
+        "id",
+        "name",
+        "document_count"
+      ],
+      "fields": [
+        "id",
+        "name",
+        "document_count"
+      ]
+    },
+    {
+      "name": "delete",
+      "summary": "delete documents (Paperless moves them to the trash)",
+      "kind": "write",
+      "op": "delete",
+      "args": [
+        {
+          "name": "id",
+          "usage": "document id(s)",
+          "required": true,
+          "variadic": true
+        }
+      ],
+      "flags": [],
+      "default_fields": [
+        "id",
+        "created",
+        "title",
+        "correspondent",
+        "tags"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "created",
+        "added",
+        "modified",
+        "correspondent",
+        "correspondent_id",
+        "document_type",
+        "document_type_id",
+        "tags",
+        "archive_serial_number",
+        "original_file_name",
+        "mime_type",
+        "page_count",
+        "deleted"
+      ]
+    },
+    {
+      "name": "doctor",
+      "summary": "check configuration, token and server",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": [],
+      "default_fields": [
+        "check",
+        "ok",
+        "detail"
+      ]
+    },
+    {
+      "name": "document-types",
+      "summary": "list document types",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": [],
+      "default_fields": [
+        "id",
+        "name",
+        "document_count"
+      ],
+      "fields": [
+        "id",
+        "name",
+        "document_count"
+      ]
+    },
+    {
+      "name": "documents",
+      "summary": "list documents, newest first",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": [
+        {
+          "name": "query",
+          "type": "string",
+          "usage": "case-insensitive text in title or content"
+        },
+        {
+          "name": "tag",
+          "type": "strings",
+          "usage": "only documents with this tag (repeatable: all must match)"
+        },
+        {
+          "name": "correspondent",
+          "type": "string",
+          "usage": "correspondent name or id"
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "usage": "document type name or id"
+        },
+        {
+          "name": "created-after",
+          "type": "string",
+          "usage": "created on or after this date"
+        },
+        {
+          "name": "created-before",
+          "type": "string",
+          "usage": "created before this date"
+        }
+      ],
+      "default_fields": [
+        "id",
+        "created",
+        "title",
+        "correspondent",
+        "tags"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "created",
+        "added",
+        "modified",
+        "correspondent",
+        "correspondent_id",
+        "document_type",
+        "document_type_id",
+        "tags",
+        "archive_serial_number",
+        "original_file_name",
+        "mime_type",
+        "page_count"
+      ],
+      "example": "paperless documents --tag invoices --created-after 2026-01-01 --json"
+    },
+    {
+      "name": "download",
+      "summary": "save a document file (archived PDF unless --original)",
+      "kind": "read",
+      "op": "download",
+      "args": [
+        {
+          "name": "id",
+          "usage": "document id",
+          "required": true
+        }
+      ],
+      "flags": [
+        {
+          "name": "out",
+          "type": "string",
+          "usage": "file to create; never overwritten, mode 0600",
+          "required": true
+        },
+        {
+          "name": "original",
+          "type": "bool",
+          "usage": "the original upload instead of the archived version"
+        }
+      ],
+      "default_fields": [
+        "id",
+        "path",
+        "bytes",
+        "mime_type"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "path",
+        "bytes",
+        "mime_type",
+        "file_name",
+        "original"
+      ],
+      "example": "paperless download 42 --out ./invoice-42.pdf"
+    },
+    {
+      "name": "get",
+      "summary": "show one document (OCR text only with --content)",
+      "kind": "read",
+      "op": "read",
+      "args": [
+        {
+          "name": "id",
+          "usage": "document id",
+          "required": true
+        }
+      ],
+      "flags": [
+        {
+          "name": "content",
+          "type": "bool",
+          "usage": "include the OCR text (cap it with --max-chars)"
+        }
+      ],
+      "default_fields": [
+        "id",
+        "title",
+        "created",
+        "added",
+        "modified",
+        "correspondent",
+        "correspondent_id",
+        "document_type",
+        "document_type_id",
+        "tags",
+        "archive_serial_number",
+        "original_file_name",
+        "mime_type",
+        "page_count",
+        "content"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "created",
+        "added",
+        "modified",
+        "correspondent",
+        "correspondent_id",
+        "document_type",
+        "document_type_id",
+        "tags",
+        "archive_serial_number",
+        "original_file_name",
+        "mime_type",
+        "page_count",
+        "content"
+      ],
+      "example": "paperless get 42 --content --max-chars 4000"
+    },
+    {
+      "name": "guard",
+      "summary": "Claude Code PreToolUse hook: deny tool calls that modify policy files (reads hook JSON on stdin)",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": []
+    },
+    {
+      "name": "help",
+      "summary": "show help",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": []
+    },
+    {
+      "name": "policy",
+      "summary": "show the effective policy and its file paths",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": [
+        {
+          "name": "example",
+          "type": "bool",
+          "usage": "print an example policy file"
+        },
+        {
+          "name": "claude-settings",
+          "type": "bool",
+          "usage": "print recommended Claude Code permission rules"
+        }
+      ]
+    },
+    {
+      "name": "schema",
+      "summary": "print the machine-readable CLI contract as JSON",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": []
+    },
+    {
+      "name": "search",
+      "summary": "full-text search, best match first",
+      "kind": "read",
+      "op": "read",
+      "args": [
+        {
+          "name": "text",
+          "usage": "search query (Paperless full-text syntax)",
+          "required": true
+        }
+      ],
+      "flags": [],
+      "default_fields": [
+        "id",
+        "created",
+        "title",
+        "highlights"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "created",
+        "added",
+        "modified",
+        "correspondent",
+        "correspondent_id",
+        "document_type",
+        "document_type_id",
+        "tags",
+        "archive_serial_number",
+        "original_file_name",
+        "mime_type",
+        "page_count",
+        "score",
+        "rank",
+        "highlights"
+      ],
+      "example": "paperless search 'insurance 2026' --limit 10"
+    },
+    {
+      "name": "tag-create",
+      "summary": "create a tag",
+      "kind": "write",
+      "op": "tag-create",
+      "args": [
+        {
+          "name": "name",
+          "usage": "new tag name",
+          "required": true
+        }
+      ],
+      "flags": [],
+      "default_fields": [
+        "id",
+        "name",
+        "document_count",
+        "is_inbox"
+      ],
+      "fields": [
+        "id",
+        "name",
+        "document_count",
+        "is_inbox"
+      ]
+    },
+    {
+      "name": "tags",
+      "summary": "list tags",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": [],
+      "default_fields": [
+        "id",
+        "name",
+        "document_count",
+        "is_inbox"
+      ],
+      "fields": [
+        "id",
+        "name",
+        "document_count",
+        "is_inbox"
+      ]
+    },
+    {
+      "name": "update",
+      "summary": "change a document's title, tags, correspondent or type",
+      "kind": "write",
+      "op": "update",
+      "args": [
+        {
+          "name": "id",
+          "usage": "document id",
+          "required": true
+        }
+      ],
+      "flags": [
+        {
+          "name": "title",
+          "type": "string",
+          "usage": "new title"
+        },
+        {
+          "name": "add-tag",
+          "type": "strings",
+          "usage": "tag name or id to add (repeatable)"
+        },
+        {
+          "name": "remove-tag",
+          "type": "strings",
+          "usage": "tag name or id to remove (repeatable)"
+        },
+        {
+          "name": "correspondent",
+          "type": "string",
+          "usage": "correspondent name or id"
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "usage": "document type name or id"
+        }
+      ],
+      "default_fields": [
+        "id",
+        "created",
+        "title",
+        "correspondent",
+        "tags"
+      ],
+      "fields": [
+        "id",
+        "title",
+        "created",
+        "added",
+        "modified",
+        "correspondent",
+        "correspondent_id",
+        "document_type",
+        "document_type_id",
+        "tags",
+        "archive_serial_number",
+        "original_file_name",
+        "mime_type",
+        "page_count"
+      ],
+      "example": "paperless update 42 --add-tag agent-reviewed --confirm"
+    },
+    {
+      "name": "upload",
+      "summary": "upload a file for consumption",
+      "kind": "write",
+      "op": "upload",
+      "args": [
+        {
+          "name": "file",
+          "usage": "path of the file to upload",
+          "required": true
+        }
+      ],
+      "flags": [
+        {
+          "name": "title",
+          "type": "string",
+          "usage": "document title (default: from the file name)"
+        },
+        {
+          "name": "tag",
+          "type": "strings",
+          "usage": "tag name or id (repeatable)"
+        },
+        {
+          "name": "correspondent",
+          "type": "string",
+          "usage": "correspondent name or id"
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "usage": "document type name or id"
+        },
+        {
+          "name": "wait",
+          "type": "bool",
+          "usage": "wait until consumed and return the document id"
+        }
+      ],
+      "default_fields": [
+        "task_id",
+        "status",
+        "id",
+        "title",
+        "file"
+      ],
+      "fields": [
+        "task_id",
+        "status",
+        "id",
+        "title",
+        "file",
+        "bytes",
+        "tags",
+        "correspondent",
+        "document_type"
+      ],
+      "example": "paperless upload ./scan.pdf --tag agent-inbox --wait --dry-run"
+    },
+    {
+      "name": "version",
+      "summary": "print the version",
+      "kind": "read",
+      "op": "read",
+      "args": [],
+      "flags": []
+    }
+  ],
+  "exit_codes": [
+    {
+      "code": 0,
+      "name": "ok",
+      "meaning": "success"
+    },
+    {
+      "code": 1,
+      "name": "internal",
+      "meaning": "internal or unexpected error"
+    },
+    {
+      "code": 2,
+      "name": "usage",
+      "meaning": "invalid arguments or flags"
+    },
+    {
+      "code": 3,
+      "name": "not_found",
+      "meaning": "item or container does not exist"
+    },
+    {
+      "code": 4,
+      "name": "policy_denied",
+      "meaning": "denied by the policy file; flags cannot override this"
+    },
+    {
+      "code": 5,
+      "name": "confirm_required",
+      "meaning": "write requested without --confirm; preview with --dry-run"
+    },
+    {
+      "code": 6,
+      "name": "permission_denied",
+      "meaning": "OS privacy permission (TCC) or authentication failure"
+    },
+    {
+      "code": 7,
+      "name": "unavailable",
+      "meaning": "backend not reachable or timed out"
+    },
+    {
+      "code": 8,
+      "name": "conflict",
+      "meaning": "ambiguous name or item already exists"
+    }
+  ],
+  "global_flags": [
+    {
+      "name": "json",
+      "type": "bool",
+      "usage": "print one JSON document"
+    },
+    {
+      "name": "ndjson",
+      "type": "bool",
+      "usage": "print one JSON object per line"
+    },
+    {
+      "name": "fields",
+      "type": "string",
+      "usage": "comma-separated output fields"
+    },
+    {
+      "name": "limit",
+      "type": "int",
+      "usage": "max items to return (default 50)"
+    },
+    {
+      "name": "cursor",
+      "type": "string",
+      "usage": "continue from a next_cursor"
+    },
+    {
+      "name": "max-chars",
+      "type": "int",
+      "usage": "cap stdout size; long text is truncated"
+    },
+    {
+      "name": "dry-run",
+      "type": "bool",
+      "usage": "writes: show what would change, change nothing"
+    },
+    {
+      "name": "confirm",
+      "type": "bool",
+      "usage": "writes: required to actually change data"
+    },
+    {
+      "name": "timeout",
+      "type": "string",
+      "default": "60s",
+      "usage": "abort after this duration"
+    },
+    {
+      "name": "help",
+      "type": "bool",
+      "usage": "show help"
+    }
+  ],
+  "name": "paperless",
+  "output": {
+    "errors": "one JSON line on stderr: {\"error\":{code,message,hint,exit}}",
+    "json": "lists: {items,count,next_cursor?,truncated?}; single items: object",
+    "ndjson": "one object per line; optional final {\"_meta\":{next_cursor,truncated}}",
+    "text": "one item per line, tab-separated default fields, '-' for empty; trailer lines start with '#'"
+  },
+  "policy": {
+    "default": "read-only: operations.allow=[read], scopes.read.allow=[*], no writes",
+    "rules": "layers intersect; deny wins; flags and env vars cannot widen the policy",
+    "scope": "document tag as \"tag:<name>\", or \"untagged\" for documents without tags",
+    "system_path": "/Library/Application Support/agent-cli/paperless.json",
+    "user_path": "~/.config/agent-cli/paperless.json (home from the user database, not $HOME)"
+  },
+  "summary": "Paperless-ngx for AI agents (read-only unless the policy allows writes)",
+  "version": "test"
+}

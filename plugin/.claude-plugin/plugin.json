@@ -1,0 +1,10 @@
+{
+  "name": "paperless",
+  "version": "0.0.0",
+  "description": "Paperless-ngx CLI for AI agents: list, search, read and download documents, and (policy-gated) upload, tag and update them over the REST API.",
+  "author": { "name": "Bam679", "url": "https://github.com/Bam679" },
+  "homepage": "https://github.com/Bam679/paperless-cli",
+  "repository": "https://github.com/Bam679/paperless-cli",
+  "license": "MIT",
+  "keywords": ["paperless", "paperless-ngx", "documents", "dms", "cli", "agent"]
+}

@@ -1,0 +1,4 @@
+1	Milk	Shopping
+2	Tab and newline	Shopping
+3	Secret	Private
+4	Sandbox item	Agent Sandbox

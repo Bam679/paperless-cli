@@ -1,0 +1,13 @@
+{
+  "name": "paperless-cli",
+  "owner": { "name": "Bam679" },
+  "description": "Single-plugin marketplace for paperless. All agent CLIs: Bam679/agent-cli-plugins.",
+  "plugins": [
+    {
+      "name": "paperless",
+      "source": "./plugin",
+      "description": "Paperless-ngx CLI for AI agents: list, search, read and download documents, and (policy-gated) upload, tag and update them over the REST API.",
+      "category": "productivity"
+    }
+  ]
+}

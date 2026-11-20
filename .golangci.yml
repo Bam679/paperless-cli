@@ -1,0 +1,28 @@
+version: "2"
+run:
+  build-tags: [integration]
+linters:
+  default: standard
+  enable:
+    - bodyclose
+    - errorlint
+    - gosec
+    - misspell
+    - nolintlint
+    - unconvert
+    - copyloopvar
+    - revive
+  settings:
+    revive:
+      rules:
+        - name: exported
+        - name: package-comments
+    gosec:
+      excludes: [G104]
+  exclusions:
+    presets: [comments, std-error-handling]
+    rules:
+      - path: _test\.go
+        linters: [gosec, revive]
+formatters:
+  enable: [gofmt, goimports]

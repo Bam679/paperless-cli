@@ -1,0 +1,34 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Do not paste personal data (mail, notes, events, documents). Redact output. Security issues: use private vulnerability reporting instead."
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `paperless version`
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS version
+      placeholder: macOS 26.x
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Command and steps to reproduce
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual (include exit code and the stderr JSON line)
+    validations:
+      required: true
