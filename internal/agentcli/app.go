@@ -92,10 +92,13 @@ type App struct {
 	Commands     []*Command
 	DefaultLimit int
 	// LoadPolicy is only replaceable in tests (in-process). The shipped
-	// binary always uses the fixed paths from PolicyPaths.
+	// binary always uses the fixed path from PolicyPath.
 	LoadPolicy func() (Effective, error)
 	Now        func() time.Time
 }
+
+// MaxLimit caps --limit for every command.
+const MaxLimit = 1000
 
 // Global flags shared by every command.
 var globalFlags = []Flag{
@@ -362,12 +365,11 @@ func (a *App) run(ctx context.Context, args []string, stdin io.Reader, stdout io
 	if def == 0 {
 		def = 50
 	}
-	max := pol.MaxResults(1000)
 	if c.Limit <= 0 {
 		c.Limit = def
 	}
-	if c.Limit > max {
-		c.Limit = max
+	if c.Limit > MaxLimit {
+		c.Limit = MaxLimit
 	}
 	c.Cursor, c.DryRun, c.Confirm = c.String("cursor"), c.Bool("dry-run"), c.Bool("confirm")
 	if cmd.Kind == Write {
@@ -395,7 +397,9 @@ func (a *App) runWrite(c *Ctx) error {
 	if n, max := len(plan.Targets), c.Policy.MaxWriteBatch(100); n > max {
 		return Deniedf("batch of %d writes exceeds policy max_write_batch %d", n, max)
 	}
-	if c.DryRun {
+	if c.DryRun || !c.Confirm {
+		// Without --confirm the plan is printed too, so the agent can show it
+		// to the user without a second round trip; nothing is changed.
 		items := make([]Item, 0, len(plan.Targets))
 		for _, t := range plan.Targets {
 			it := Item{"dry_run": true, "op": c.Cmd.op()}
@@ -404,11 +408,14 @@ func (a *App) runWrite(c *Ctx) error {
 			}
 			items = append(items, it)
 		}
-		return c.Out.List(Page{Items: items}, append([]string{"op", "dry_run"}, c.Cmd.Fields...))
-	}
-	if !c.Confirm {
+		if err := c.Out.List(Page{Items: items}, append([]string{"op", "dry_run"}, c.Cmd.Fields...)); err != nil {
+			return err
+		}
+		if c.DryRun {
+			return nil
+		}
 		return &Error{Code: "confirm_required", Exit: ExitConfirm,
-			Message: fmt.Sprintf("%s changes data; rerun with --confirm (preview with --dry-run)", c.Cmd.Name)}
+			Message: fmt.Sprintf("%s changes data; the plan is on stdout, rerun with --confirm to apply", c.Cmd.Name)}
 	}
 	res, err := plan.Apply(c)
 	if err != nil {
@@ -470,8 +477,8 @@ func (a *App) showPolicy(c *Ctx, pol Effective, perr error) error {
 		_, err := fmt.Fprintln(c.Out.W, ExamplePolicy(ops, a.ScopeExample))
 		return err
 	}
-	system, userPath, _ := PolicyPaths(a.Name)
-	it := Item{"tool": a.Name, "system_path": system, "user_path": userPath, "scope": a.ScopeHelp}
+	userPath, _ := PolicyPath(a.Name)
+	it := Item{"tool": a.Name, "user_path": userPath, "scope": a.ScopeHelp}
 	if perr != nil {
 		it["error"] = perr.Error()
 		it["effective"] = "deny-all (fail closed)"
@@ -482,7 +489,7 @@ func (a *App) showPolicy(c *Ctx, pol Effective, perr error) error {
 		}
 		it["layers"] = layers
 	}
-	if err := c.Out.Object(it, []string{"tool", "user_path", "system_path", "scope", "error", "effective", "layers"}); err != nil {
+	if err := c.Out.Object(it, []string{"tool", "user_path", "scope", "error", "effective", "layers"}); err != nil {
 		return err
 	}
 	if perr != nil {
@@ -686,7 +693,6 @@ func (a *App) writeSchema(w io.Writer) error {
 		cmds = append(cmds, schemaCommand{c.Name, c.Summary, c.Kind, c.op(), args, flags, c.Fields, c.AllFields, c.Stdin, c.Example})
 	}
 	sort.SliceStable(cmds, func(i, j int) bool { return cmds[i].Name < cmds[j].Name })
-	system, _, _ := PolicyPaths(a.Name)
 	doc := map[string]any{
 		"name":         a.Name,
 		"version":      a.Version,
@@ -701,11 +707,10 @@ func (a *App) writeSchema(w io.Writer) error {
 			"errors": "one JSON line on stderr: {\"error\":{code,message,hint,exit}}",
 		},
 		"policy": map[string]any{
-			"user_path":   "~/.config/agent-cli/" + a.Name + ".json (home from the user database, not $HOME)",
-			"system_path": system,
-			"default":     "read-only: operations.allow=[read], scopes.read.allow=[*], no writes",
-			"scope":       a.ScopeHelp,
-			"rules":       "layers intersect; deny wins; flags and env vars cannot widen the policy",
+			"path":    "~/.config/agent-cli/" + a.Name + ".json (home from the user database, not $HOME)",
+			"default": "read-only: operations.allow=[read], no writes",
+			"scope":   a.ScopeHelp,
+			"rules":   "deny wins; empty scopes.read.allow means all; flags and env vars cannot widen the policy",
 		},
 	}
 	enc := json.NewEncoder(w)

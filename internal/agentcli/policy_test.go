@@ -80,6 +80,18 @@ func TestDefaultPolicyIsReadOnly(t *testing.T) {
 	}
 }
 
+func TestReadScopeIsOptional(t *testing.T) {
+	e := Effective{Layers: []Policy{{Version: 1, Operations: OpRule{Allow: []string{OpRead, "add"}},
+		Scopes: ScopeRules{Read: Rule{Deny: []string{"Private*"}}, Write: Rule{Allow: []string{"Agent*"}}}}}}
+	if !e.AllowsScope(OpRead, "Work") || e.AllowsScope(OpRead, "Private stuff") {
+		t.Fatal("empty read.allow must mean all, deny must still apply")
+	}
+	empty := Effective{Layers: []Policy{{Version: 1, Operations: OpRule{Allow: []string{OpRead, "add"}}}}}
+	if empty.AllowsScope(OpWrite, "Agent X") {
+		t.Fatal("empty write.allow must mean nothing")
+	}
+}
+
 func TestEmptyEffectiveDeniesAll(t *testing.T) {
 	var e Effective
 	if e.AllowsOp("list", OpRead) || e.AllowsScope(OpRead, "x") {
@@ -92,7 +104,7 @@ func TestLayersIntersectAndDenyWins(t *testing.T) {
 		Scopes: ScopeRules{Read: Rule{Allow: []string{"*"}, Deny: []string{"Private*"}}, Write: Rule{Allow: []string{"*"}}}}
 	userP := Policy{Operations: OpRule{Allow: []string{OpRead, "add", "delete"}},
 		Scopes: ScopeRules{Read: Rule{Allow: []string{"*"}}, Write: Rule{Allow: []string{"Agent*"}}},
-		Limits: Limits{MaxResults: 20, MaxWriteBatch: 3}}
+		Limits: Limits{MaxWriteBatch: 3}}
 	e := Effective{Layers: []Policy{system, userP}}
 	if !e.AllowsOp("add", OpWrite) {
 		t.Error("add allowed by both")
@@ -109,7 +121,7 @@ func TestLayersIntersectAndDenyWins(t *testing.T) {
 	if !e.AllowsScope(OpWrite, "Agent Sandbox") || e.AllowsScope(OpWrite, "Work") {
 		t.Error("write scope intersection wrong")
 	}
-	if e.MaxResults(1000) != 20 || e.MaxWriteBatch(100) != 3 || e.MaxResults(10) != 10 {
+	if e.MaxWriteBatch(100) != 3 || e.MaxWriteBatch(2) != 2 {
 		t.Error("limits must take the minimum")
 	}
 }
@@ -123,7 +135,8 @@ func TestParsePolicy(t *testing.T) {
 		"unknown key":  `{"version":1,"operation":{}}`,
 		"version":      `{"version":2}`,
 		"trailing":     `{"version":1}{"version":1}`,
-		"negative":     `{"version":1,"limits":{"max_results":-1}}`,
+		"negative":     `{"version":1,"limits":{"max_write_batch":-1}}`,
+		"removed key":  `{"version":1,"limits":{"max_results":5}}`,
 		"not json":     `version: 1`,
 		"wrong type":   `{"version":1,"operations":{"allow":"write"}}`,
 		"missing vers": `{}`,
@@ -163,13 +176,13 @@ func TestLoadFrom(t *testing.T) {
 	uid := os.Getuid()
 	missing := filepath.Join(dir, "nope.json")
 
-	e, err := loadFrom(missing, missing, uid)
+	e, err := loadFrom(missing, uid)
 	if err != nil || len(e.Layers) != 1 || e.AllowsOp("add", OpWrite) {
 		t.Fatalf("missing files must give read-only default: %v %v", e, err)
 	}
 
 	p := writePolicy(t, dir, `{"version":1,"operations":{"allow":["read","add"]},"scopes":{"read":{"allow":["*"]},"write":{"allow":["A*"]}}}`, 0o600)
-	e, err = loadFrom(missing, p, uid)
+	e, err = loadFrom(p, uid)
 	if err != nil || !e.AllowsOp("add", OpWrite) || !e.AllowsScope(OpWrite, "Agent") {
 		t.Fatalf("user policy not applied: %v", err)
 	}
@@ -177,36 +190,29 @@ func TestLoadFrom(t *testing.T) {
 	if err := os.Chmod(p, 0o666); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := loadFrom(missing, p, uid); err == nil || !strings.Contains(err.Error(), "writable") {
+	if _, err := loadFrom(p, uid); err == nil || !strings.Contains(err.Error(), "writable") {
 		t.Fatalf("world-writable policy must be rejected: %v", err)
 	}
 	if err := os.Chmod(p, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := loadFrom(missing, p, uid+1); err == nil {
+	if _, err := loadFrom(p, uid+1); err == nil {
 		t.Fatal("foreign-owned policy must be rejected")
 	}
-	if _, err := loadFrom(missing, dir, uid); err == nil {
+	if _, err := loadFrom(dir, uid); err == nil {
 		t.Fatal("directory as policy must be rejected")
 	}
 	if err := os.WriteFile(p, []byte(`{"version":1,"bogus":true}`), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := loadFrom(missing, p, uid); err == nil {
+	if _, err := loadFrom(p, uid); err == nil {
 		t.Fatal("invalid policy must fail closed")
-	}
-	// A system layer (owned by root in production) is checked against uid 0.
-	if err := os.WriteFile(p, []byte(`{"version":1}`), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	if _, err := loadFrom(p, missing, uid); uid != 0 && err == nil {
-		t.Fatal("system policy not owned by root must be rejected")
 	}
 }
 
-func TestPolicyPathsIgnoreHOME(t *testing.T) {
+func TestPolicyPathIgnoresHOME(t *testing.T) {
 	t.Setenv("HOME", "/tmp/evil-home")
-	_, u, err := PolicyPaths("apple-x")
+	u, err := PolicyPath("apple-x")
 	if err != nil {
 		t.Skip("no user database:", err)
 	}

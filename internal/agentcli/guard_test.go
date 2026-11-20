@@ -87,6 +87,11 @@ func TestClaudeSettings(t *testing.T) {
 		t.Fatal(code)
 	}
 	var v struct {
+		Sandbox struct {
+			Enabled                  bool
+			AllowUnsandboxedCommands bool
+			ExcludedCommands         []string
+		}
 		Permissions struct{ Allow, Ask, Deny []string }
 	}
 	if err := json.Unmarshal([]byte(out), &v); err != nil {
@@ -94,6 +99,12 @@ func TestClaudeSettings(t *testing.T) {
 	}
 	if !contains(v.Permissions.Ask, "Bash(fake add:*)") || !contains(v.Permissions.Allow, "Bash(fake items:*)") || len(v.Permissions.Deny) == 0 {
 		t.Fatalf("unexpected settings: %s", out)
+	}
+	if !v.Sandbox.Enabled || v.Sandbox.AllowUnsandboxedCommands || !contains(v.Sandbox.ExcludedCommands, "fake *") {
+		t.Fatalf("sandbox recipe: %+v", v.Sandbox)
+	}
+	if !contains(v.Permissions.Deny, "Edit(~/.config/agent-cli/**)") {
+		t.Fatal("policy dir must be denied")
 	}
 	if contains(v.Permissions.Allow, "Bash(fake add:*)") {
 		t.Fatal("write command must not be auto-allowed")

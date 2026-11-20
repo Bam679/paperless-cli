@@ -617,11 +617,10 @@
     "text": "one item per line, tab-separated default fields, '-' for empty; trailer lines start with '#'"
   },
   "policy": {
-    "default": "read-only: operations.allow=[read], scopes.read.allow=[*], no writes",
-    "rules": "layers intersect; deny wins; flags and env vars cannot widen the policy",
-    "scope": "document tag as \"tag:<name>\", or \"untagged\" for documents without tags",
-    "system_path": "<system-policy-path>",
-    "user_path": "~/.config/agent-cli/paperless.json (home from the user database, not $HOME)"
+    "default": "read-only: operations.allow=[read], no writes",
+    "path": "~/.config/agent-cli/paperless.json (home from the user database, not $HOME)",
+    "rules": "deny wins; empty scopes.read.allow means all; flags and env vars cannot widen the policy",
+    "scope": "document tag as \"tag:<name>\", or \"untagged\" for documents without tags"
   },
   "summary": "Paperless-ngx for AI agents (read-only unless the policy allows writes)",
   "version": "test"

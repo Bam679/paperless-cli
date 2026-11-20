@@ -241,10 +241,10 @@
     "text": "one item per line, tab-separated default fields, '-' for empty; trailer lines start with '#'"
   },
   "policy": {
-    "default": "read-only: operations.allow=[read], scopes.read.allow=[*], no writes",
-    "rules": "layers intersect; deny wins; flags and env vars cannot widen the policy",
-    "scope": "list name",
-    "user_path": "~/.config/agent-cli/fake.json (home from the user database, not $HOME)"
+    "default": "read-only: operations.allow=[read], no writes",
+    "path": "~/.config/agent-cli/fake.json (home from the user database, not $HOME)",
+    "rules": "deny wins; empty scopes.read.allow means all; flags and env vars cannot widen the policy",
+    "scope": "list name"
   },
   "summary": "fake tool",
   "version": "0.0.0-test"

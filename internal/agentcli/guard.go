@@ -19,8 +19,8 @@ type hookInput struct {
 
 // GuardDecision inspects a PreToolUse payload and returns a deny reason if the
 // tool call would touch an agent-cli policy file. It is best effort (an agent
-// with a shell can obfuscate); the binary-enforced policy and the root-owned
-// system policy are the actual boundary.
+// with a shell can obfuscate); the binary-enforced policy together with the
+// Claude Code sandbox is the actual boundary.
 func GuardDecision(payload []byte) (deny bool, reason string) {
 	var in hookInput
 	if err := json.Unmarshal(payload, &in); err != nil {
@@ -85,8 +85,11 @@ func runGuard(stdin io.Reader, stdout io.Writer) error {
 	return err
 }
 
-// ClaudeSettings returns recommended Claude Code permission rules for app:
-// read commands allowed, write commands ask, policy files protected.
+// ClaudeSettings returns recommended Claude Code settings for app: read
+// commands allowed, write commands ask, policy files denied, and the Bash
+// sandbox enabled with only this CLI excluded. Inside the sandbox an agent
+// cannot reach Apple Events, the network or the policy file directly, so the
+// CLI (and its policy) is the only path to the data.
 func ClaudeSettings(a *App) map[string]any {
 	var allow, ask []string
 	for _, c := range append(append([]*Command{}, a.Commands...), a.builtins()...) {
@@ -100,10 +103,17 @@ func ClaudeSettings(a *App) map[string]any {
 			allow = append(allow, rule)
 		}
 	}
-	deny := []string{
-		"Edit(~/.config/agent-cli/**)", "Write(~/.config/agent-cli/**)",
-		"Edit(//Library/Application Support/agent-cli/**)", "Write(//Library/Application Support/agent-cli/**)",
-		"Edit(//etc/agent-cli/**)", "Write(//etc/agent-cli/**)",
+	return map[string]any{
+		"sandbox": map[string]any{
+			"enabled":                  true,
+			"allowUnsandboxedCommands": false,
+			"excludedCommands":         []string{a.Name + " *"},
+			"filesystem":               map[string]any{"denyWrite": []string{"~/.config/agent-cli"}},
+		},
+		"permissions": map[string]any{
+			"allow": allow,
+			"ask":   ask,
+			"deny":  []string{"Read(~/.config/agent-cli/**)", "Edit(~/.config/agent-cli/**)"},
+		},
 	}
-	return map[string]any{"permissions": map[string]any{"allow": allow, "ask": ask, "deny": deny}}
 }

@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
-	"runtime"
 	"strings"
 )
 
@@ -36,7 +35,8 @@ type OpRule struct {
 }
 
 // ScopeRules restricts which containers (lists, calendars, folders, mailboxes,
-// tags) may be read or written. Patterns use * as wildcard; deny wins.
+// tags) may be read or written. Patterns use * as wildcard; deny wins. Read
+// scopes are an optional privacy filter: an empty read.allow means "all".
 type ScopeRules struct {
 	Read  Rule `json:"read"`
 	Write Rule `json:"write"`
@@ -48,9 +48,8 @@ type Rule struct {
 	Deny  []string `json:"deny"`
 }
 
-// Limits caps result sizes and write batches. Zero means "use default".
+// Limits caps write batches. Zero means "use default".
 type Limits struct {
-	MaxResults    int `json:"max_results"`
 	MaxWriteBatch int `json:"max_write_batch"`
 }
 
@@ -65,7 +64,8 @@ func DefaultPolicy() Policy {
 	}
 }
 
-// Effective is the intersection of all loaded policy layers.
+// Effective is the intersection of its policy layers. The CLI loads exactly
+// one layer (the user file or the default); tests may compose several.
 type Effective struct {
 	Layers []Policy
 }
@@ -97,16 +97,17 @@ func (e Effective) AllowsScope(class, scope string) bool {
 		if class == OpWrite {
 			r = p.Scopes.Write
 		}
-		if matchAny(r.Deny, scope) || !matchAny(r.Allow, scope) {
+		if matchAny(r.Deny, scope) {
+			return false
+		}
+		if class == OpRead && len(r.Allow) == 0 {
+			continue
+		}
+		if !matchAny(r.Allow, scope) {
 			return false
 		}
 	}
 	return true
-}
-
-// MaxResults returns the smallest positive max_results across layers, or def.
-func (e Effective) MaxResults(def int) int {
-	return e.minLimit(def, func(l Limits) int { return l.MaxResults })
 }
 
 // MaxWriteBatch returns the smallest positive max_write_batch, or def.
@@ -183,62 +184,48 @@ func ParsePolicy(data []byte, source string) (Policy, error) {
 	if p.Version != 1 {
 		return Policy{}, fmt.Errorf("%s: unsupported policy version %d (want 1)", source, p.Version)
 	}
-	if p.Limits.MaxResults < 0 || p.Limits.MaxWriteBatch < 0 {
+	if p.Limits.MaxWriteBatch < 0 {
 		return Policy{}, fmt.Errorf("%s: limits must not be negative", source)
 	}
 	p.Source = source
 	return p, nil
 }
 
-// PolicyPaths returns the fixed system and user policy paths for tool.
-// They are intentionally not configurable via flags or environment variables,
-// so an agent cannot point the binary at a more permissive policy.
-func PolicyPaths(tool string) (system, userPath string, err error) {
-	system = filepath.Join("/etc/agent-cli", tool+".json")
-	if runtime.GOOS == "darwin" {
-		system = filepath.Join("/Library/Application Support/agent-cli", tool+".json")
-	}
-	u, err := user.Current() // ignores $HOME on purpose
+// PolicyPath returns the fixed policy path for tool. It is intentionally not
+// configurable via flags or environment variables, and the home directory
+// comes from the user database (not $HOME), so an agent cannot point the
+// binary at a more permissive policy.
+func PolicyPath(tool string) (string, error) {
+	u, err := user.Current()
 	if err != nil {
-		return system, "", fmt.Errorf("cannot determine home directory: %w", err)
+		return "", fmt.Errorf("cannot determine home directory: %w", err)
 	}
-	return system, filepath.Join(u.HomeDir, ".config", "agent-cli", tool+".json"), nil
+	return filepath.Join(u.HomeDir, ".config", "agent-cli", tool+".json"), nil
 }
 
 // fileOwner extracts the owner uid of a file; overridable in tests.
 var fileOwner = ownerUID
 
-// LoadPolicy loads the effective policy from the fixed paths. A missing user
-// file yields the read-only default. Any invalid or insecure file is an error:
-// callers must fail closed.
+// LoadPolicy loads the user policy from the fixed path. A missing file yields
+// the read-only default. Any invalid or insecure file is an error: callers
+// must fail closed.
 func LoadPolicy(tool string) (Effective, error) {
-	system, userPath, err := PolicyPaths(tool)
+	path, err := PolicyPath(tool)
 	if err != nil {
 		return Effective{}, err
 	}
-	return loadFrom(system, userPath, os.Getuid())
+	return loadFrom(path, os.Getuid())
 }
 
-func loadFrom(system, userPath string, uid int) (Effective, error) {
-	var eff Effective
-	if p, ok, err := readLayer(system, 0); err != nil {
-		return Effective{}, err
-	} else if ok {
-		eff.Layers = append(eff.Layers, p)
-	}
-	if userPath == "" {
-		eff.Layers = append(eff.Layers, DefaultPolicy())
-		return eff, nil
-	}
-	p, ok, err := readLayer(userPath, uid)
+func loadFrom(path string, uid int) (Effective, error) {
+	p, ok, err := readLayer(path, uid)
 	if err != nil {
 		return Effective{}, err
 	}
 	if !ok {
 		p = DefaultPolicy()
 	}
-	eff.Layers = append(eff.Layers, p)
-	return eff, nil
+	return Effective{Layers: []Policy{p}}, nil
 }
 
 // readLayer reads a policy file that must be owned by wantUID and must not be
@@ -284,7 +271,7 @@ func ExamplePolicy(writeOps []string, scopeExample string) string {
 			"read":  map[string]any{"allow": []string{"*"}, "deny": []string{}},
 			"write": map[string]any{"allow": []string{scopeExample}, "deny": []string{}},
 		},
-		"limits": map[string]any{"max_results": 200, "max_write_batch": 10},
+		"limits": map[string]any{"max_write_batch": 10},
 	}, "", "  ")
 	return strings.TrimSpace(string(b))
 }
