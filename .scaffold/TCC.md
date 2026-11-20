@@ -1,21 +1,3 @@
-## Configuration and credentials
+### Credentials
 
-`paperless` needs no OS privacy permission. It talks to your Paperless-ngx server over its REST API and is configured through two sources only:
-
-| Setting | Source |
-|---|---|
-| Server | `PAPERLESS_URL` (required), e.g. `https://paperless.example.com` or `https://example.com/paperless`. It must use `https`; plain `http` is accepted only for `localhost`, `127.0.0.1` and `::1`. |
-| API token | `PAPERLESS_TOKEN`, or else the macOS Keychain item with service `paperless-cli` and the normalised `PAPERLESS_URL` as account |
-
-Store the token in the Keychain once. `security` prompts for it, so it never lands in your shell history (create the token in Paperless under Profile > API Auth Token):
-
-```sh
-security add-generic-password -s paperless-cli -a https://paperless.example.com -w
-```
-
-- The account must match the normalised URL: lower-case scheme and host, no default port, no trailing slash. `paperless doctor` shows the URL it uses and where the token came from.
-- Because the item is keyed by URL, pointing `PAPERLESS_URL` at another server can never pull your token for this one.
-- The token is read with `/usr/bin/security find-generic-password -s paperless-cli -a <url> -w` (fixed argv, no shell). It is sent only as `Authorization: Token …` to `PAPERLESS_URL`. Redirects to another host or scheme are refused, so it never follows a redirect elsewhere.
-- There is no flag or argument for the token. It is never printed, logged or echoed in errors.
-- Give the CLI a dedicated Paperless user with only the permissions the agent needs. Paperless's own object permissions apply on top of the policy file.
-- Missing or rejected credentials exit with code 6, an unreachable server with code 7.
+`paperless` needs no macOS privacy permission. It reads the server from `PAPERLESS_URL` and the API token from `PAPERLESS_TOKEN`, or on macOS from the Keychain item with service `paperless-cli` and the normalised server URL as account. Because the Keychain item is tied to the URL, pointing `PAPERLESS_URL` at another server can't pull your token for this one. There is no flag or argument for the token, and it never appears in output or errors. Give the CLI a dedicated Paperless user with only the permissions the agent needs; Paperless applies its own object permissions on top of the policy file. Missing or rejected credentials exit with code 6, and an unreachable server with code 7.

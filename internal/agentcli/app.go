@@ -91,6 +91,10 @@ type App struct {
 	ScopeExample string
 	Commands     []*Command
 	DefaultLimit int
+	// DefaultOn lists write operations that are allowed unless the policy
+	// denies them explicitly (by name, by the "write" class, or by a
+	// scopes.write.deny pattern). Use sparingly for harmless writes.
+	DefaultOn []string
 	// LoadPolicy is only replaceable in tests (in-process). The shipped
 	// binary always uses the fixed path from PolicyPath.
 	LoadPolicy func() (Effective, error)
@@ -355,7 +359,7 @@ func (a *App) run(ctx context.Context, args []string, stdin io.Reader, stdout io
 		return Deniedf("policy file rejected, failing closed: %v", perr)
 	}
 	c.Policy = pol
-	if !pol.AllowsOp(cmd.op(), string(cmd.Kind)) {
+	if !a.allowsOp(pol, cmd) {
 		return Deniedf("operation %q is not allowed by policy", cmd.op())
 	}
 	if c.Limit, err = c.Int("limit"); err != nil {
@@ -381,6 +385,24 @@ func (a *App) run(ctx context.Context, args []string, stdin io.Reader, stdout io
 	return cmd.Run(c)
 }
 
+func (a *App) defaultOn(cmd *Command) bool {
+	return cmd.Kind == Write && contains(a.DefaultOn, cmd.op())
+}
+
+func (a *App) allowsOp(pol Effective, cmd *Command) bool {
+	if a.defaultOn(cmd) {
+		return len(pol.Layers) > 0 && !pol.DeniesOp(cmd.op(), string(cmd.Kind))
+	}
+	return pol.AllowsOp(cmd.op(), string(cmd.Kind))
+}
+
+func (a *App) allowsWriteScope(pol Effective, cmd *Command, scope string) bool {
+	if a.defaultOn(cmd) {
+		return len(pol.Layers) > 0 && !pol.DeniesScope(OpWrite, scope)
+	}
+	return pol.AllowsScope(OpWrite, scope)
+}
+
 func (a *App) runWrite(c *Ctx) error {
 	plan, err := c.Cmd.Plan(c)
 	if err != nil {
@@ -390,7 +412,7 @@ func (a *App) runWrite(c *Ctx) error {
 		return Internalf("write plan without scope")
 	}
 	for _, s := range plan.Scopes {
-		if !c.Policy.AllowsScope(OpWrite, s) {
+		if !a.allowsWriteScope(c.Policy, c.Cmd, s) {
 			return Deniedf("writing to %q is not allowed by policy", s)
 		}
 	}
@@ -479,6 +501,9 @@ func (a *App) showPolicy(c *Ctx, pol Effective, perr error) error {
 	}
 	userPath, _ := PolicyPath(a.Name)
 	it := Item{"tool": a.Name, "user_path": userPath, "scope": a.ScopeHelp}
+	if len(a.DefaultOn) > 0 {
+		it["default_on"] = a.DefaultOn
+	}
 	if perr != nil {
 		it["error"] = perr.Error()
 		it["effective"] = "deny-all (fail closed)"
@@ -489,7 +514,7 @@ func (a *App) showPolicy(c *Ctx, pol Effective, perr error) error {
 		}
 		it["layers"] = layers
 	}
-	if err := c.Out.Object(it, []string{"tool", "user_path", "scope", "error", "effective", "layers"}); err != nil {
+	if err := c.Out.Object(it, []string{"tool", "user_path", "scope", "default_on", "error", "effective", "layers"}); err != nil {
 		return err
 	}
 	if perr != nil {
@@ -612,6 +637,9 @@ func (a *App) writeHelp(w io.Writer, cmd *Command) error {
 			tag := ""
 			if c.Kind == Write {
 				tag = " [write]"
+				if a.defaultOn(c) {
+					tag = " [write, on unless the policy denies it]"
+				}
 			}
 			fmt.Fprintf(&b, "  %-16s %s%s\n", c.Name, c.Summary, tag)
 		}
@@ -680,6 +708,13 @@ type schemaCommand struct {
 	Example   string   `json:"example,omitempty"`
 }
 
+func nonNilStrings(s []string) []string {
+	if s == nil {
+		return []string{}
+	}
+	return s
+}
+
 func (a *App) writeSchema(w io.Writer) error {
 	var cmds []schemaCommand
 	for _, c := range append(append([]*Command{}, a.Commands...), a.builtins()...) {
@@ -707,10 +742,11 @@ func (a *App) writeSchema(w io.Writer) error {
 			"errors": "one JSON line on stderr: {\"error\":{code,message,hint,exit}}",
 		},
 		"policy": map[string]any{
-			"path":    "~/.config/agent-cli/" + a.Name + ".json (home from the user database, not $HOME)",
-			"default": "read-only: operations.allow=[read], no writes",
-			"scope":   a.ScopeHelp,
-			"rules":   "deny wins; empty scopes.read.allow means all; flags and env vars cannot widen the policy",
+			"path":       "~/.config/agent-cli/" + a.Name + ".json (home from the user database, not $HOME)",
+			"default":    "read-only: operations.allow=[read], no writes",
+			"scope":      a.ScopeHelp,
+			"rules":      "deny wins; empty scopes.read.allow means all; flags and env vars cannot widen the policy",
+			"default_on": nonNilStrings(a.DefaultOn),
 		},
 	}
 	enc := json.NewEncoder(w)

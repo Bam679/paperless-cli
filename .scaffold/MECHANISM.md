@@ -1,0 +1,1 @@
+`paperless` talks to the Paperless-ngx REST API with a token from the environment or the macOS Keychain, and prints one line per document or JSON. It connects to your server and nowhere else. Writes stay off until a policy file allows them, and tag-based scopes can hide whole categories of documents from the agent.

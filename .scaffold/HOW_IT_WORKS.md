@@ -1,0 +1,1 @@
+`paperless` builds every request from typed parameters with Go's `net/http` and `net/url`; there is no shell and no script. Document scopes are the document's tags (`tag:<name>`), so one deny rule such as `tag:medical` hides a whole category from lists, searches and downloads.

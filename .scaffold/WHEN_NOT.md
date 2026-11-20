@@ -1,0 +1,3 @@
+- You manage users, permissions, workflows or mail rules in Paperless. The CLI covers documents, tags, correspondents and types only.
+- You run bulk edits over thousands of documents. Use the Paperless web interface or its bulk-edit API; the CLI caps write batches.
+- Your agent cannot run shell commands. An MCP server fits better there.

@@ -87,6 +87,30 @@ func (e Effective) AllowsOp(op, class string) bool {
 	return true
 }
 
+// DeniesOp reports whether any layer explicitly denies op or its class.
+func (e Effective) DeniesOp(op, class string) bool {
+	for _, p := range e.Layers {
+		if contains(p.Operations.Deny, op) || contains(p.Operations.Deny, class) {
+			return true
+		}
+	}
+	return false
+}
+
+// DeniesScope reports whether any layer explicitly denies scope for the class.
+func (e Effective) DeniesScope(class, scope string) bool {
+	for _, p := range e.Layers {
+		r := p.Scopes.Read
+		if class == OpWrite {
+			r = p.Scopes.Write
+		}
+		if matchAny(r.Deny, scope) {
+			return true
+		}
+	}
+	return false
+}
+
 // AllowsScope reports whether scope is allowed for the class by every layer.
 func (e Effective) AllowsScope(class, scope string) bool {
 	if len(e.Layers) == 0 {

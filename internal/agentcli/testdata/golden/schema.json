@@ -242,6 +242,7 @@
   },
   "policy": {
     "default": "read-only: operations.allow=[read], no writes",
+    "default_on": [],
     "path": "~/.config/agent-cli/fake.json (home from the user database, not $HOME)",
     "rules": "deny wins; empty scopes.read.allow means all; flags and env vars cannot widen the policy",
     "scope": "list name"

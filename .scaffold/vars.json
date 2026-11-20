@@ -21,5 +21,11 @@
   "PERMISSION_HINT": "The API token is missing or was rejected",
   "DATA_NOUN": "the documents in your Paperless-ngx archive",
   "INTEGRATION_NOTE": "The Paperless tests start a throwaway Paperless-ngx in Docker, run against it and remove it with all its data.",
-  "ARCHIVE_NOTE": " (`.tar.gz`; Windows builds are `.zip`)"
+  "ARCHIVE_NOTE": " (`.tar.gz`; Windows builds are `.zip`)",
+  "TARGET": "your Paperless-ngx server",
+  "AGENT_TASK": "the user's Paperless-ngx documents",
+  "SANDBOX_TARGET": "the Paperless API with `curl`",
+  "FIRST_RUN": "It reports the server URL, where the token came from and whether the server answered. It never prints the token.",
+  "ARCHIVE_CHOICES": "`darwin`, `linux` or `windows` with `arm64` or `amd64`; Windows archives are `.zip`",
+  "NETWORK_SECTION": "`paperless` talks to one host: the server in `PAPERLESS_URL`, over HTTPS (plain HTTP only for `localhost`). It refuses redirects to other hosts, so the token never goes anywhere else. On macOS it also reads the token from the Keychain with `/usr/bin/security`."
 }

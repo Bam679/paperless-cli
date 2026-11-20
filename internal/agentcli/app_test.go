@@ -350,3 +350,39 @@ func TestDecodeInputsLimits(t *testing.T) {
 		t.Fatal("wrong type must fail")
 	}
 }
+
+func TestDefaultOnOperation(t *testing.T) {
+	f := newFixture()
+	f.app.DefaultOn = []string{"add"}
+	// Default policy: allowed without any policy file.
+	f.pol = Effective{Layers: []Policy{DefaultPolicy()}}
+	if code, _, e := f.run("", "add", "--list", "Shopping", "--title", "x", "--confirm"); code != 0 || f.applied != 1 {
+		t.Fatalf("default-on op must be allowed by the default policy: %d %s", code, e)
+	}
+	// A user policy that does not mention it still allows it.
+	f.pol = Effective{Layers: []Policy{{Version: 1, Operations: OpRule{Allow: []string{OpRead}}}}}
+	if code, _, _ := f.run("", "add", "--list", "Shopping", "--title", "x", "--confirm"); code != 0 {
+		t.Fatal("default-on op must survive a policy that does not mention it")
+	}
+	for name, pol := range map[string]Policy{
+		"op deny":    {Version: 1, Operations: OpRule{Allow: []string{OpRead}, Deny: []string{"add"}}},
+		"class deny": {Version: 1, Operations: OpRule{Allow: []string{OpRead}, Deny: []string{OpWrite}}},
+		"scope deny": {Version: 1, Operations: OpRule{Allow: []string{OpRead}}, Scopes: ScopeRules{Write: Rule{Deny: []string{"Shop*"}}}},
+	} {
+		f.pol = Effective{Layers: []Policy{pol}}
+		before := f.applied
+		if code, _, _ := f.run("", "add", "--list", "Shopping", "--title", "x", "--confirm"); code != ExitPolicy || f.applied != before {
+			t.Fatalf("%s must block the default-on op: %d", name, code)
+		}
+	}
+	f.pol = Effective{}
+	if code, _, _ := f.run("", "add", "--list", "Shopping", "--title", "x", "--confirm"); code != ExitPolicy {
+		t.Fatal("no policy layers must deny everything")
+	}
+	if _, out, _ := f.run("", "--help"); !strings.Contains(out, "on unless the policy denies it") {
+		t.Fatal("help must mark default-on writes")
+	}
+	if code, out, _ := f.run("", "policy"); code != 0 || !strings.Contains(out, "default_on") {
+		t.Fatalf("policy must show default-on ops: %s", out)
+	}
+}
