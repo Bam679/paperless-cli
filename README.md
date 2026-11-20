@@ -7,6 +7,11 @@ Search, read, download and file Paperless-ngx documents from the command line, b
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/Bam679/paperless-cli/badge)](https://scorecard.dev/viewer/?uri=github.com/Bam679/paperless-cli)
 [![licence](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.svg">
+  <img alt="paperless logo: the agent-cli bracket mark with the paperless glyph" src="assets/logo.svg" height="56">
+</picture>
+
 `paperless` talks to the Paperless-ngx REST API with a token from the environment or the macOS Keychain, and prints one line per document or JSON. It connects to your server and nowhere else. Writes stay off until a policy file allows them, and tag-based scopes can hide whole categories of documents from the agent.
 
 
