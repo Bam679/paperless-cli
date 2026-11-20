@@ -620,7 +620,7 @@
     "default": "read-only: operations.allow=[read], scopes.read.allow=[*], no writes",
     "rules": "layers intersect; deny wins; flags and env vars cannot widen the policy",
     "scope": "document tag as \"tag:<name>\", or \"untagged\" for documents without tags",
-    "system_path": "/Library/Application Support/agent-cli/paperless.json",
+    "system_path": "<system-policy-path>",
     "user_path": "~/.config/agent-cli/paperless.json (home from the user database, not $HOME)"
   },
   "summary": "Paperless-ngx for AI agents (read-only unless the policy allows writes)",

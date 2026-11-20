@@ -313,6 +313,11 @@ func TestReadCommandsGolden(t *testing.T) {
 		if code != 0 {
 			t.Fatalf("%s: exit %d %s", name, code, errOut)
 		}
+		if name == "schema.json" {
+			// The system policy path differs per OS (macOS vs Linux/Windows).
+			sys, _, _ := agentcli.PolicyPaths("paperless")
+			out = strings.ReplaceAll(out, sys, "<system-policy-path>")
+		}
 		golden(t, name, out)
 	}
 }
