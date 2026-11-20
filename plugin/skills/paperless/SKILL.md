@@ -55,7 +55,7 @@ paperless delete <id> [<id>…] --confirm
 | 2 | usage | fix the flags (see `--help`), or `PAPERLESS_URL` is invalid |
 | 3 | not found | re-list to get valid ids, tag or correspondent names |
 | 4 | policy denied | **stop**: tell the user which op or tag was denied. Never edit `~/.config/agent-cli/*`, never look for workarounds. |
-| 5 | confirm required | you forgot `--confirm`. Only add it if the user wants the change. |
+| 5 | confirm required | nothing changed; the plan is on stdout. Show it to the user and rerun with `--confirm` only if they want the change |
 | 6 | auth | token missing or rejected. The user must fix it; never ask for the token. |
 | 7 | unavailable | server down or slow; retry once later, or raise `--timeout` |
 | 8 | conflict | name ambiguous (pass the id), file exists, tag exists or duplicate upload |

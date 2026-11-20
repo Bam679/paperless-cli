@@ -1,0 +1,1 @@
+Ideas, not code, came from [julianfbeck/paperless-cli](https://github.com/julianfbeck/paperless-cli) (task polling for uploads) and [marcelbrueckner/paperless-ngx-cli](https://github.com/marcelbrueckner/paperless-ngx-cli) (adding and removing tags by name or id). Both are MIT licensed.

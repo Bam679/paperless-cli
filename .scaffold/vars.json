@@ -11,10 +11,15 @@
   "KEYWORDS": "\"paperless\", \"paperless-ngx\", \"documents\", \"dms\", \"cli\", \"agent\"",
   "SCOPE_HELP": "document tags as `tag:<name>` (e.g. `tag:invoices`, `tag:agent-*`), or `untagged` for documents without tags",
   "WRITE_OPS": "`upload`, `update`, `delete`, `tag-create`",
-  "SYSTEM_POLICY": "/Library/Application Support/agent-cli/paperless.json` (macOS) or `/etc/agent-cli/paperless.json",
   "INJECTION": "No shell and no scripts. Requests are built with `net/url` and `encoding/json` from typed parameters, and the only subprocess (`/usr/bin/security`, for the Keychain) gets fixed argv elements.",
   "SECRETS": "The API token comes from `PAPERLESS_TOKEN` or the macOS Keychain (keyed by the server URL), never from flags or arguments. It is never printed, logged or included in errors, and it is never sent to another host on a redirect.",
   "NETWORK": " except HTTPS requests to your own `PAPERLESS_URL`",
-  "POLICY": "{\n  \"version\": 1,\n  \"operations\": { \"allow\": [\"read\", \"upload\", \"update\", \"tag-create\"], \"deny\": [\"delete\"] },\n  \"scopes\": {\n    \"read\":  { \"allow\": [\"*\"], \"deny\": [\"tag:medical\", \"tag:private*\"] },\n    \"write\": { \"allow\": [\"tag:agent-*\", \"tag:inbox\"], \"deny\": [] }\n  },\n  \"limits\": { \"max_results\": 200, \"max_write_batch\": 10 }\n}",
-  "ICON_COLOR": "#0CA678"
+  "POLICY": "{\n  \"version\": 1,\n  \"operations\": {\n    \"allow\": [\n      \"read\",\n      \"upload\",\n      \"update\",\n      \"tag-create\"\n    ],\n    \"deny\": [\n      \"delete\"\n    ]\n  },\n  \"scopes\": {\n    \"read\": {\n      \"allow\": [\n        \"*\"\n      ],\n      \"deny\": [\n        \"tag:medical\",\n        \"tag:private*\"\n      ]\n    },\n    \"write\": {\n      \"allow\": [\n        \"tag:agent-*\",\n        \"tag:inbox\"\n      ],\n      \"deny\": []\n    }\n  },\n  \"limits\": {\n    \"max_write_batch\": 10\n  }\n}",
+  "ICON_COLOR": "#0CA678",
+  "ONELINER": "Search, read, download and file Paperless-ngx documents from the command line, built for AI coding agents.",
+  "PRIVATE_EXAMPLE": "tag:medical",
+  "PERMISSION_HINT": "The API token is missing or was rejected",
+  "DATA_NOUN": "the documents in your Paperless-ngx archive",
+  "INTEGRATION_NOTE": "The Paperless tests start a throwaway Paperless-ngx in Docker, run against it and remove it with all its data.",
+  "ARCHIVE_NOTE": " (`.tar.gz`; Windows builds are `.zip`)"
 }

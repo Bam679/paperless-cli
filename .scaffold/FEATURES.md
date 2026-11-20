@@ -1,0 +1,6 @@
+- Document lists with filters for tags, correspondents, types and dates, plus Paperless full-text search with highlights
+- OCR text on request, with a size limit, and downloads that never overwrite files
+- Uploading, retagging, updating and deleting documents, and creating tags
+- Writes stay off until a policy file allows them; tag-based scopes can also hide documents, for example everything tagged `medical`
+- The token comes from the environment or the macOS Keychain, never from a flag, and never leaves for another host
+- Builds for macOS, Linux and Windows
