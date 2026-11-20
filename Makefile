@@ -32,7 +32,7 @@ cover: test
 	@scripts/coverage.sh coverage.out $(COVER_MIN)
 
 fuzz-smoke:
-	@scripts/fuzz-smoke.sh 5s
+	@scripts/fuzz-smoke.sh 3000x
 
 vuln:
 	$(GOVULNCHECK) ./...

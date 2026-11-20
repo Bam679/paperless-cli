@@ -15,5 +15,6 @@
   "INJECTION": "No shell and no scripts. Requests are built with `net/url` and `encoding/json` from typed parameters, and the only subprocess (`/usr/bin/security`, for the Keychain) gets fixed argv elements.",
   "SECRETS": "The API token comes from `PAPERLESS_TOKEN` or the macOS Keychain (keyed by the server URL), never from flags or arguments. It is never printed, logged or included in errors, and it is never sent to another host on a redirect.",
   "NETWORK": " except HTTPS requests to your own `PAPERLESS_URL`",
-  "POLICY": "{\n  \"version\": 1,\n  \"operations\": { \"allow\": [\"read\", \"upload\", \"update\", \"tag-create\"], \"deny\": [\"delete\"] },\n  \"scopes\": {\n    \"read\":  { \"allow\": [\"*\"], \"deny\": [\"tag:medical\", \"tag:private*\"] },\n    \"write\": { \"allow\": [\"tag:agent-*\", \"tag:inbox\"], \"deny\": [] }\n  },\n  \"limits\": { \"max_results\": 200, \"max_write_batch\": 10 }\n}"
+  "POLICY": "{\n  \"version\": 1,\n  \"operations\": { \"allow\": [\"read\", \"upload\", \"update\", \"tag-create\"], \"deny\": [\"delete\"] },\n  \"scopes\": {\n    \"read\":  { \"allow\": [\"*\"], \"deny\": [\"tag:medical\", \"tag:private*\"] },\n    \"write\": { \"allow\": [\"tag:agent-*\", \"tag:inbox\"], \"deny\": [] }\n  },\n  \"limits\": { \"max_results\": 200, \"max_write_batch\": 10 }\n}",
+  "ICON_COLOR": "#0CA678"
 }
